@@ -41,7 +41,7 @@ jobs:
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
       - name: Send gha-creds-*.json to Google drive
-        run: npx guratan --src-file-name "${GOOGLE_APPLICATION_CREDENTIALS=}"
+        run: npx guratan --src-file-name "${GOOGLE_APPLICATION_CREDENTIALS}"
         env:
           # 外部から切り替えできるように secret にしてある.
           GURATAN_PARENT_ID: ${{ secrets.GURATAN_PARENT_ID }}
