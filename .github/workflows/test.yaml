@@ -1,0 +1,49 @@
+name: test
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  send:
+    environment: send
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.xx
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+
+      - id: "auth"
+        name: "Authenticate to Google Cloud"
+        uses: "google-github-actions/auth@v0"
+        with:
+          # 外部から切り替えできるように secret にしてある.
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICE_ACCOUNT }}
+
+      - name: Send gha-creds-*.json to Google drive
+        run: npx guratan send --src-file-name "${GOOGLE_APPLICATION_CREDENTIALS}"
+        env:
+          # 外部から切り替えできるように secret にしてある.
+          GURATAN_PARENT_ID: ${{ secrets.GURATAN_PARENT_ID }}
+          GURATAN_DEST_FILE_NAME: ${{ secrets.GURATAN_DEST_FILE_NAME }}
+          # GURATAN_SRC_FILE_NAME: ${{ secrets.GURATAN_SRC_FILE_NAME }}
